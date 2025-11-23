@@ -33,7 +33,7 @@ Las relaciones son las siguientes:
 - *(Product)-[:SIMILAR_TO]->(Product)* (Calculada según características).
 
 # 🧩 Implementación técnica.
-- **Ingesta de eventos:** Un microservicio Java (Spring Boot) consume mensajes de Kafka (view_event, purchase_event), los transforma y los inserta en Neo4j.
+- Ingesta de eventos: Un microservicio Java (Spring Boot) consume mensajes de Kafka (view_event, purchase_event), los transforma y los inserta en Neo4j.
 ```java
 @Service
 public class EventIngestService {
@@ -60,7 +60,7 @@ redisTemplate.opsForValue().set("recs:"+userId, recommendations, 10, TimeUnit.MI
 ```
 
 - **API REST:** Endpoint /api/recommendations/{userId} entrega productos recomendados en JSON.
-- **Interfaz demo:** Frontend simple (React o Thymeleaf) que muestra los productos recomendados y su tiempo de respuesta.
+- Interfaz demo: Frontend simple (React o Thymeleaf) que muestra los productos recomendados y su tiempo de respuesta.
 
 # 📈 Impacto y métricas después de la solución.
 Tras un mes de implementación del piloto en una categoría específica de productos, se observaron mejoras significativas en los principales indicadores de rendimiento.
