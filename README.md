@@ -33,7 +33,7 @@ Las relaciones son las siguientes:
 - *(Product)-[:SIMILAR_TO]->(Product)* (Calculada según características).
 
 # 🧩 Implementación técnica.
-**Ingesta de eventos:** Un microservicio Java (Spring Boot) consume mensajes de Kafka (view_event, purchase_event), los transforma y los inserta en Neo4j.
+- **Ingesta de eventos:** Un microservicio Java (Spring Boot) consume mensajes de Kafka (view_event, purchase_event), los transforma y los inserta en Neo4j.
 ```java
 @Service
 public class EventIngestService {
@@ -44,3 +44,27 @@ public class EventIngestService {
         neo4jClient.query(query).bindAll(Map.of("u", userId, "p", productId)).run();
     }
 }
+```
+
+- **Recomendador para la consulta personalizada:** Usando Cypher.
+```cypher
+MATCH (u:User {id:$userId})-[:BOUGHT]->(p1)<-[:BOUGHT]-(other:User)-[:BOUGHT]->(rec:Product)
+WHERE NOT (u)-[:BOUGHT]->(rec)
+RETURN rec, COUNT(*) AS score
+ORDER BY score DESC LIMIT 5;
+```
+
+- **Caché en Redis:** Los resultados se almacenan con TTL de diez minutos.
+```java
+redisTemplate.opsForValue().set("recs:"+userId, recommendations, 10, TimeUnit.MINUTES);
+```
+
+- **API REST:** Endpoint /api/recommendations/{userId} entrega productos recomendados en JSON.
+- **Interfaz demo:** Frontend simple (React o Thymeleaf) que muestra los productos recomendados y su tiempo de respuesta.
+
+# 📈 Impacto y métricas después de la solución.
+Tras un mes de implementación del piloto en una categoría específica de productos, se observaron mejoras significativas en los principales indicadores de rendimiento.
+- **CTR en recomendaciones:** pasó de 1.5% a 6.8%, evidenciando un aumento considerable en la interacción de los usuarios con los productos sugeridos.
+- **Valor promedio de compra (AOV):** incrementó de $580 a $715 MXN, lo que representa un crecimiento del 23%.
+- **Tiempo promedio de respuesta del sistema:** se redujo de 1.2 segundos a 80 ms gracias a la implementación de caché en Redis, optimizando la experiencia del usuario.
+- **Engagement:** las sesiones con al menos un clic en recomendaciones aumentaron en un 35%, reflejando una mayor participación y relevancia del sistema de recomendación.
